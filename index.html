@@ -1095,10 +1095,10 @@ const AudioManager = {
   },
 
   initSpeech() {
+    if (!('speechSynthesis' in window)) return;
     const loadVoices = () => {
       const voices = speechSynthesis.getVoices();
       const zhVoices = voices.filter(v => v.lang === 'zh-CN' || v.lang.startsWith('zh'));
-      // Prefer female voice: look for names containing female/女/Ting-Ting/Meijia
       GS.zhVoice = zhVoices.find(v => /female|女|ting.ting|meijia|lili|yaoyao/i.test(v.name)) ||
                     zhVoices[0] || null;
       GS.speechReady = true;
@@ -1109,8 +1109,6 @@ const AudioManager = {
 
   speak(text) {
     if (!GS.audioEnabled || !('speechSynthesis' in window)) return;
-    // Workaround for Chrome/Safari bug where speechSynthesis stops working:
-    // Always cancel first, then after a short delay, speak fresh.
     speechSynthesis.cancel();
     const doSpeak = () => {
       const utter = new SpeechSynthesisUtterance(text);
@@ -1411,8 +1409,8 @@ const InputHandler = {
 // ===== Game Controller =====
 const GameController = {
   startGame(mode) {
-    AudioManager.initAudioContext();
-    AudioManager.initSpeech();
+    try { AudioManager.initAudioContext(); } catch(e) {}
+    try { AudioManager.initSpeech(); } catch(e) {}
 
     GS.mode = mode;
     GS.currentLevel = 1;
@@ -1561,7 +1559,7 @@ const GameController = {
   onLevelComplete() {
     TimerController.stop();
     GS.inputLocked = true;
-    speechSynthesis.cancel();
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
 
     GS.overallStats.levels.push({ ...GS.levelStats });
     UIRenderer.renderLevelStats(GS.levelStats, GS.currentLevel);
@@ -1643,7 +1641,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('sound-toggle');
     btn.textContent = GS.audioEnabled ? '🔊' : '🔇';
     btn.classList.toggle('muted', !GS.audioEnabled);
-    if (!GS.audioEnabled) speechSynthesis.cancel();
+    if (!GS.audioEnabled && 'speechSynthesis' in window) speechSynthesis.cancel();
   });
 });
 
