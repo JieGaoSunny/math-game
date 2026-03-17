@@ -2,7 +2,8 @@
 
 <p align="center">
   <strong>一款专为6岁小朋友设计的可爱数学练习游戏</strong><br>
-  <em>A cute math practice game designed for 6-year-old kids</em>
+  <em>A cute math practice game designed for 6-year-old kids</em><br><br>
+  🌐 <a href="https://mathgame.societas.work">mathgame.societas.work</a>
 </p>
 
 ---
@@ -108,10 +109,12 @@ npx serve .
 
 Then visit `http://localhost:8080`
 
-### 方法三：在线体验 | Option 3: Online Demo
-可以将 `index.html` 部署到任何静态托管服务（GitHub Pages、Netlify、Vercel 等）。
+### 方法三：在线体验 | Option 3: Play Online
+👉 **https://mathgame.societas.work**
 
-Deploy `index.html` to any static hosting service (GitHub Pages, Netlify, Vercel, etc.).
+无需安装，直接在浏览器中打开即可游玩！
+
+No installation needed — just open in your browser and play!
 
 ---
 
