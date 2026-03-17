@@ -1781,13 +1781,7 @@ function runTests() {
   return failed === 0;
 }
 
-// Auto-run tests on load (results in console)
-if (typeof console !== 'undefined') {
-  setTimeout(() => {
-    console.log('Running automated tests...');
-    runTests();
-  }, 500);
-}
+// Tests available via console: runTests()
 </script>
 </body>
 </html>
