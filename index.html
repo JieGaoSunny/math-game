@@ -721,7 +721,7 @@ html, body {
 
     <!-- Question Area -->
     <div class="question-area">
-      <div class="question-text" id="question-text">10 + 5 = ?</div>
+      <div class="question-text" id="question-text">10 + 5 =</div>
       <div class="answer-display" id="answer-display">
         <span id="answer-text"></span><span class="answer-cursor"></span>
       </div>
@@ -926,7 +926,7 @@ const QuestionGenerator = {
     const answer = randomInt(6, max);
     const a = randomInt(3, answer - 3);
     const b = answer - a;
-    return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} = ?` };
+    return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} =` };
   },
 
   // Specifically generate carry additions (进位加法): a%10 + b%10 >= 10
@@ -937,7 +937,7 @@ const QuestionGenerator = {
       const a = randomInt(3, answer - 3);
       const b = answer - a;
       if ((a % 10) + (b % 10) >= 10 && a >= 3 && b >= 3) {
-        return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} = ?` };
+        return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} =` };
       }
     }
     return this.generateAddition();
@@ -949,7 +949,7 @@ const QuestionGenerator = {
     const a = randomInt(5, max);
     const b = randomInt(2, Math.max(2, a - 1));
     const answer = a - b;
-    return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} = ?` };
+    return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} =` };
   },
 
   // Specifically generate borrow subtractions (退位减法): a%10 < b%10
@@ -960,7 +960,7 @@ const QuestionGenerator = {
       const b = randomInt(2, a);
       if ((a % 10) < (b % 10) && (a - b) >= 0) {
         const answer = a - b;
-        return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} = ?` };
+        return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} =` };
       }
     }
     return this.generateSubtraction();
@@ -992,7 +992,7 @@ const QuestionGenerator = {
         answer = mid - c;
       }
       if (answer >= 0 && answer <= max) {
-        const display = `${a} ${ops[0]} ${b} ${ops[1]} ${c} = ?`;
+        const display = `${a} ${ops[0]} ${b} ${ops[1]} ${c} =`;
         return { operands: [a, b, c], operators: ops, answer, display };
       }
     }
@@ -1027,7 +1027,7 @@ const QuestionGenerator = {
         operands.push(num);
       }
       if (!ok || val < 0 || val > max) continue;
-      const display = operands.map((n, i) => i === 0 ? `${n}` : `${ops[i-1]} ${n}`).join(' ') + ' = ?';
+      const display = operands.map((n, i) => i === 0 ? `${n}` : `${ops[i-1]} ${n}`).join(' ') + ' =';
       return { operands, operators: ops, answer: val, display };
     }
     return this.generateChained(); // fallback
