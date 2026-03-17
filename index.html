@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小兔子数学乐园</title>
+<style>
+/* ===== CSS Reset & Global ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+:root {
+  --bg-primary: #FFF5F5;
+  --bg-secondary: #FFF0E6;
+  --bg-game: linear-gradient(180deg, #FFF5F5 0%, #FFE8F0 50%, #FFF0E6 100%);
+  --color-pink: #FF8AAE;
+  --color-pink-light: #FFB8D0;
+  --color-pink-dark: #E0709A;
+  --color-mint: #7DDCBA;
+  --color-yellow: #FFD93D;
+  --color-purple: #C9A5F7;
+  --color-blue: #87CEEB;
+  --color-orange: #FFB067;
+  --color-correct: #4CAF50;
+  --color-wrong: #FF6B6B;
+  --color-text: #5D4037;
+  --color-text-light: #8D6E63;
+  --color-white: #FFFFFF;
+  --color-timer-ok: #7DDCBA;
+  --color-timer-warn: #FFD93D;
+  --color-timer-danger: #FF6B6B;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --radius-full: 50%;
+  --shadow: 0 4px 15px rgba(0,0,0,0.08);
+  --shadow-btn: 0 4px 12px rgba(255,138,174,0.3);
+}
+
+/* ===== Screen System ===== */
+.screen {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-game);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { display: flex; }
+
+/* ===== Start Screen ===== */
+#screen-start {
+  gap: 20px;
+  padding: 40px 20px;
+}
+.start-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-pink);
+  text-shadow: 2px 2px 0 rgba(255,138,174,0.2);
+  text-align: center;
+  animation: float 3s ease-in-out infinite;
+}
+.start-subtitle {
+  font-size: 16px;
+  color: var(--color-text-light);
+  margin-top: -10px;
+}
+.mode-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 10px;
+}
+.mode-btn {
+  padding: 18px 24px;
+  border-radius: var(--radius);
+  border: 3px solid var(--color-pink);
+  background: var(--color-white);
+  color: var(--color-pink);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.mode-btn:active { transform: scale(0.96); }
+.mode-btn.active-mode {
+  background: var(--color-pink);
+  color: white;
+}
+.mode-btn:disabled {
+  border-color: #ddd;
+  color: #bbb;
+  background: #f5f5f5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== Game Screen ===== */
+#screen-game {
+  justify-content: flex-start;
+  padding: 0;
+}
+.game-container {
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px;
+  margin: 0 auto;
+}
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 8px;
+  flex-shrink: 0;
+}
+.level-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.sound-toggle {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-pink-light);
+  background: var(--color-white);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+}
+.sound-toggle.muted { opacity: 0.4; }
+
+/* Progress Ring */
+.progress-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.progress-ring-svg {
+  width: 40px; height: 40px;
+  transform: rotate(-90deg);
+}
+.progress-ring-bg {
+  fill: none; stroke: #F0E0E8; stroke-width: 3;
+}
+.progress-ring-fg {
+  fill: none; stroke: var(--color-pink); stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+.progress-text {
+  font-size: 14px; font-weight: 600; color: var(--color-text-light);
+}
+
+/* Timer Bar */
+.timer-bar-container {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #F0E0E8;
+  margin: 6px 0 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.timer-bar {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-timer-ok);
+  transition: width 0.1s linear, background-color 0.3s;
+  width: 100%;
+}
+.timer-bar.warn { background: var(--color-timer-warn); }
+.timer-bar.danger { background: var(--color-timer-danger); animation: pulse 0.5s ease-in-out infinite; }
+
+.timer-text {
+  font-size: 15px; font-weight: 700; color: var(--color-text);
+  min-width: 30px; text-align: center;
+}
+
+/* Question Area */
+.question-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 0;
+}
+.question-text {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  text-align: center;
+  padding: 10px 16px;
+  letter-spacing: 2px;
+  word-break: break-all;
+}
+.question-text.shake { animation: shake 0.4s; }
+.question-text.fadeInUp { animation: fadeInUp 0.3s; }
+
+/* Answer Display */
+.answer-display {
+  min-width: 120px;
+  height: 56px;
+  border-radius: var(--radius);
+  border: 3px solid var(--color-pink-light);
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+  position: relative;
+  padding: 0 16px;
+}
+.answer-display.correct {
+  border-color: var(--color-correct);
+  background: #E8F5E9;
+  color: var(--color-correct);
+}
+.answer-display.wrong {
+  border-color: var(--color-wrong);
+  background: #FFEBEE;
+  color: var(--color-wrong);
+}
+.answer-cursor {
+  display: inline-block;
+  width: 2px; height: 28px;
+  background: var(--color-pink);
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+}
+.answer-display.has-input .answer-cursor { display: none; }
+
+/* Correct Answer Reveal */
+.correct-answer-reveal {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-correct);
+  margin-top: 4px;
+  min-height: 28px;
+}
+
+/* Bunny Character */
+.bunny-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 110px;
+  margin: 4px 0;
+}
+.bunny {
+  position: relative;
+  width: 80px;
+  height: 100px;
+  animation: float 3s ease-in-out infinite;
+}
+.bunny--happy { animation: bounce 0.5s ease; }
+.bunny--sad { animation: wiggle 0.6s ease; }
+.bunny--celebrate { animation: celebrate 0.6s ease infinite; }
+.bunny--sleep .bunny-eye { height: 2px !important; border-radius: 2px !important; }
+
+.bunny-ear {
+  position: absolute;
+  width: 18px; height: 44px;
+  background: #FFE0EB;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  top: -30px;
+  border: 2px solid #FFD0DE;
+}
+.bunny-ear::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 28px;
+  background: #FFB8D0;
+  border-radius: 50%;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+}
+.bunny-ear.left { left: 16px; transform: rotate(-10deg); }
+.bunny-ear.right { right: 16px; transform: rotate(10deg); }
+
+.bunny-face {
+  position: absolute;
+  width: 64px; height: 56px;
+  background: #FFE0EB;
+  border-radius: 50%;
+  top: 6px; left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid #FFD0DE;
+  z-index: 2;
+}
+.bunny-eye {
+  position: absolute;
+  width: 8px; height: 10px;
+  background: #5D4037;
+  border-radius: var(--radius-full);
+  top: 18px;
+  transition: all 0.2s;
+}
+.bunny-eye.left { left: 14px; }
+.bunny-eye.right { right: 14px; }
+
+.bunny--happy .bunny-eye {
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  top: 20px;
+  background: #5D4037;
+}
+.bunny-nose {
+  position: absolute;
+  width: 8px; height: 6px;
+  background: #FF8AAE;
+  border-radius: 50%;
+  top: 28px; left: 50%;
+  transform: translateX(-50%);
+}
+.bunny-mouth {
+  position: absolute;
+  width: 14px; height: 7px;
+  border-bottom: 2.5px solid #FF8AAE;
+  border-radius: 0 0 50% 50%;
+  top: 34px; left: 50%;
+  transform: translateX(-50%);
+  transition: all 0.2s;
+}
+.bunny--sad .bunny-mouth {
+  border-bottom: none;
+  border-top: 2.5px solid #FF8AAE;
+  border-radius: 50% 50% 0 0;
+  top: 36px;
+}
+.bunny-cheek {
+  position: absolute;
+  width: 12px; height: 8px;
+  background: rgba(255,138,174,0.35);
+  border-radius: 50%;
+  top: 30px;
+}
+.bunny-cheek.left { left: 4px; }
+.bunny-cheek.right { right: 4px; }
+
+.bunny-body {
+  position: absolute;
+  width: 50px; height: 40px;
+  background: #FFE0EB;
+  border-radius: 40% 40% 50% 50%;
+  top: 48px; left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid #FFD0DE;
+  border-top: none;
+  z-index: 1;
+  border-top: none;
+}
+.bunny-arm {
+  position: absolute;
+  width: 14px; height: 22px;
+  background: #FFE0EB;
+  border-radius: 50%;
+  bottom: 12px;
+  border: 2px solid #FFD0DE;
+  transition: all 0.3s;
+}
+.bunny-arm.left { left: -2px; transform: rotate(15deg); }
+.bunny-arm.right { right: -2px; transform: rotate(-15deg); }
+.bunny--happy .bunny-arm.left { transform: rotate(-30deg) translateY(-8px); }
+.bunny--happy .bunny-arm.right { transform: rotate(30deg) translateY(-8px); }
+.bunny--celebrate .bunny-arm.left { transform: rotate(-45deg) translateY(-12px); }
+.bunny--celebrate .bunny-arm.right { transform: rotate(45deg) translateY(-12px); }
+
+/* Keypad */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px 0 16px;
+  flex-shrink: 0;
+  max-width: 320px;
+  margin: 0 auto;
+  width: 100%;
+}
+.key-btn {
+  height: 54px;
+  border-radius: 14px;
+  border: 2px solid #F0E0E8;
+  background: var(--color-white);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+.key-btn:active {
+  transform: scale(0.94);
+  background: #FFF0F5;
+}
+.key-btn.key-delete {
+  background: #FFF0E6;
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  font-size: 22px;
+}
+.key-btn.key-confirm {
+  background: var(--color-mint);
+  border-color: #5BC8A0;
+  color: white;
+  font-size: 26px;
+}
+.key-btn.key-confirm:active { background: #5BC8A0; }
+.key-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== Level Complete Screen ===== */
+#screen-level-complete, #screen-game-complete {
+  gap: 16px;
+  padding: 40px 20px;
+}
+.result-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--color-pink);
+  text-align: center;
+}
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+}
+.overall-progress {
+  width: 80%;
+  max-width: 300px;
+  margin: 4px auto 8px;
+  text-align: center;
+}
+.overall-progress-label {
+  font-size: 16px;
+  color: var(--color-text);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.overall-progress-bar {
+  width: 100%;
+  height: 14px;
+  background: #f0e0e0;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.overall-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF8AAE, #FFB347);
+  border-radius: 7px;
+  transition: width 0.6s ease;
+}
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.stat-icon { font-size: 24px; }
+.stat-value { color: var(--color-pink-dark); }
+
+.result-btn {
+  padding: 16px 40px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-btn);
+  min-width: 200px;
+}
+.result-btn:active { transform: scale(0.96); }
+.btn-primary {
+  background: var(--color-pink);
+  color: white;
+}
+.btn-secondary {
+  background: var(--color-white);
+  color: var(--color-pink);
+  border: 2px solid var(--color-pink);
+  box-shadow: var(--shadow);
+}
+
+/* ===== Rest Screen ===== */
+#screen-rest {
+  gap: 24px;
+  padding: 40px 20px;
+}
+.rest-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-light);
+}
+
+/* ===== Stars/Overall Stats ===== */
+.stars-row {
+  display: flex; gap: 6px; margin: 8px 0;
+}
+.star {
+  font-size: 32px;
+  animation: starPop 0.3s ease backwards;
+}
+.star:nth-child(1) { animation-delay: 0.1s; }
+.star:nth-child(2) { animation-delay: 0.2s; }
+.star:nth-child(3) { animation-delay: 0.3s; }
+.star:nth-child(4) { animation-delay: 0.4s; }
+.star:nth-child(5) { animation-delay: 0.5s; }
+
+.overall-stats { text-align: center; }
+.overall-stats .stat-item { justify-content: center; }
+
+/* ===== Confetti ===== */
+.confetti-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; z-index: 100;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  animation: confettiFall 1.5s ease-out forwards;
+}
+
+/* ===== Feedback Toast ===== */
+.feedback-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  padding: 16px 32px;
+  border-radius: var(--radius-lg);
+  font-size: 24px;
+  font-weight: 800;
+  z-index: 90;
+  pointer-events: none;
+  animation: toastPop 0.8s ease forwards;
+}
+.feedback-toast.correct {
+  background: #E8F5E9; color: var(--color-correct);
+  border: 3px solid var(--color-correct);
+}
+.feedback-toast.wrong {
+  background: #FFEBEE; color: var(--color-wrong);
+  border: 3px solid var(--color-wrong);
+}
+.feedback-toast.retry {
+  background: #FFF8E1; color: #F9A825;
+  border: 3px solid #F9A825;
+}
+
+/* ===== Animations ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-20px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+@keyframes celebrate {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-14px) scale(1.05); }
+  50% { transform: translateY(0) scale(1); }
+  75% { transform: translateY(-8px) scale(1.02); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(var(--x-drift, 0px));
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 20px)) rotate(var(--rotate, 720deg)) translateX(var(--x-drift, 30px));
+    opacity: 0;
+  }
+}
+@keyframes toastPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+@keyframes starPop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ===== Responsive ===== */
+@media (min-width: 600px) {
+  .start-title { font-size: 40px; }
+  .question-text { font-size: 42px; }
+  .answer-display { min-width: 160px; height: 64px; font-size: 36px; }
+  .key-btn { height: 62px; font-size: 26px; }
+  .keypad { gap: 10px; max-width: 360px; }
+  .bunny { transform-origin: center; width: 90px; height: 110px; }
+  .bunny-area { height: 130px; }
+}
+@media (min-width: 900px) {
+  .game-container { max-width: 560px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Screen: Start ===== -->
+<div id="screen-start" class="screen active">
+  <div class="start-title">小兔子数学乐园</div>
+  <div class="start-subtitle">和小兔子一起快乐学数学</div>
+
+  <div class="bunny-area">
+    <div class="bunny" id="start-bunny">
+      <div class="bunny-ear left"></div>
+      <div class="bunny-ear right"></div>
+      <div class="bunny-face">
+        <div class="bunny-eye left"></div>
+        <div class="bunny-eye right"></div>
+        <div class="bunny-nose"></div>
+        <div class="bunny-mouth"></div>
+        <div class="bunny-cheek left"></div>
+        <div class="bunny-cheek right"></div>
+      </div>
+      <div class="bunny-body">
+        <div class="bunny-arm left"></div>
+        <div class="bunny-arm right"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mode-grid">
+    <button class="mode-btn active-mode" id="btn-mode-within20">20以内加减法</button>
+    <button class="mode-btn" id="btn-mode-within50">50以内加减法</button>
+    <button class="mode-btn" id="btn-mode-within100">100以内加减法</button>
+  </div>
+</div>
+
+<!-- ===== Screen: Game ===== -->
+<div id="screen-game" class="screen">
+  <div class="game-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <span class="level-label" id="level-label">第1关</span>
+      <button class="sound-toggle" id="sound-toggle" title="音效开关">🔊</button>
+      <div class="progress-wrap">
+        <svg class="progress-ring-svg" viewBox="0 0 40 40">
+          <circle class="progress-ring-bg" cx="20" cy="20" r="17"/>
+          <circle class="progress-ring-fg" id="progress-ring" cx="20" cy="20" r="17"
+                  stroke-dasharray="106.81" stroke-dashoffset="106.81"/>
+        </svg>
+        <span class="progress-text" id="progress-text">0/20</span>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <!-- Question Area -->
+    <div class="question-area">
+      <div class="question-text" id="question-text">10 + 5 = ?</div>
+      <div class="answer-display" id="answer-display">
+        <span id="answer-text"></span><span class="answer-cursor"></span>
+      </div>
+      <div class="correct-answer-reveal" id="correct-answer-reveal"></div>
+    </div>
+
+    <!-- Bunny -->
+    <div class="bunny-area">
+      <div class="bunny" id="game-bunny">
+        <div class="bunny-ear left"></div>
+        <div class="bunny-ear right"></div>
+        <div class="bunny-face">
+          <div class="bunny-eye left"></div>
+          <div class="bunny-eye right"></div>
+          <div class="bunny-nose"></div>
+          <div class="bunny-mouth"></div>
+          <div class="bunny-cheek left"></div>
+          <div class="bunny-cheek right"></div>
+        </div>
+        <div class="bunny-body">
+          <div class="bunny-arm left"></div>
+          <div class="bunny-arm right"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keypad -->
+    <div class="keypad" id="keypad">
+      <button class="key-btn" data-key="1">1</button>
+      <button class="key-btn" data-key="2">2</button>
+      <button class="key-btn" data-key="3">3</button>
+      <button class="key-btn" data-key="4">4</button>
+      <button class="key-btn" data-key="5">5</button>
+      <button class="key-btn" data-key="6">6</button>
+      <button class="key-btn" data-key="7">7</button>
+      <button class="key-btn" data-key="8">8</button>
+      <button class="key-btn" data-key="9">9</button>
+      <button class="key-btn key-delete" data-key="delete">⌫</button>
+      <button class="key-btn" data-key="0">0</button>
+      <button class="key-btn key-confirm" data-key="confirm">✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Screen: Level Complete ===== -->
+<div id="screen-level-complete" class="screen">
+  <div class="result-title" id="level-complete-title">第1关通过！</div>
+
+  <div class="bunny-area">
+    <div class="bunny bunny--celebrate" id="celebrate-bunny">
+      <div class="bunny-ear left"></div>
+      <div class="bunny-ear right"></div>
+      <div class="bunny-face">
+        <div class="bunny-eye left"></div>
+        <div class="bunny-eye right"></div>
+        <div class="bunny-nose"></div>
+        <div class="bunny-mouth"></div>
+        <div class="bunny-cheek left"></div>
+        <div class="bunny-cheek right"></div>
+      </div>
+      <div class="bunny-body">
+        <div class="bunny-arm left"></div>
+        <div class="bunny-arm right"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stars-row" id="stars-row"></div>
+
+  <div class="result-stats">
+    <div class="stat-item"><span class="stat-icon">✅</span> 正确率：<span class="stat-value" id="stat-accuracy">0%</span></div>
+    <div class="stat-item"><span class="stat-icon">⏱️</span> 平均用时：<span class="stat-value" id="stat-avg-time">0秒</span></div>
+    <div class="stat-item"><span class="stat-icon">⏰</span> 本关用时：<span class="stat-value" id="stat-level-time">0秒</span></div>
+  </div>
+
+  <div class="overall-progress">
+    <div class="overall-progress-label" id="overall-progress-label">总进度：1 / 4 关</div>
+    <div class="overall-progress-bar">
+      <div class="overall-progress-fill" id="overall-progress-fill" style="width:25%"></div>
+    </div>
+  </div>
+
+  <button class="result-btn btn-primary" id="btn-next-level">继续下一关</button>
+  <button class="result-btn btn-secondary" id="btn-rest">休息一下</button>
+</div>
+
+<!-- ===== Screen: Game Complete ===== -->
+<div id="screen-game-complete" class="screen">
+  <div class="result-title" id="game-complete-title">全部通关！太厉害了！</div>
+
+  <div class="bunny-area">
+    <div class="bunny bunny--celebrate">
+      <div class="bunny-ear left"></div>
+      <div class="bunny-ear right"></div>
+      <div class="bunny-face">
+        <div class="bunny-eye left"></div>
+        <div class="bunny-eye right"></div>
+        <div class="bunny-nose"></div>
+        <div class="bunny-mouth"></div>
+        <div class="bunny-cheek left"></div>
+        <div class="bunny-cheek right"></div>
+      </div>
+      <div class="bunny-body">
+        <div class="bunny-arm left"></div>
+        <div class="bunny-arm right"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stars-row">
+    <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+    <span class="star">⭐</span><span class="star">⭐</span>
+  </div>
+
+  <div class="overall-stats" id="overall-stats">
+    <div class="stat-item"><span class="stat-icon">🎉</span> 总答对：<span class="stat-value" id="stat-total-correct">0题</span></div>
+    <div class="stat-item"><span class="stat-icon">🏆</span> 总正确率：<span class="stat-value" id="stat-total-accuracy">0%</span></div>
+    <div class="stat-item"><span class="stat-icon">⏱️</span> 总用时：<span class="stat-value" id="stat-total-time">0分钟</span></div>
+  </div>
+
+  <button class="result-btn btn-primary" id="btn-replay">再玩一次</button>
+</div>
+
+<!-- ===== Screen: Rest ===== -->
+<div id="screen-rest" class="screen">
+  <div class="bunny-area" style="height:140px;">
+    <div class="bunny bunny--sleep" style="animation:float 4s ease-in-out infinite;">
+      <div class="bunny-ear left"></div>
+      <div class="bunny-ear right"></div>
+      <div class="bunny-face">
+        <div class="bunny-eye left"></div>
+        <div class="bunny-eye right"></div>
+        <div class="bunny-nose"></div>
+        <div class="bunny-mouth"></div>
+        <div class="bunny-cheek left"></div>
+        <div class="bunny-cheek right"></div>
+      </div>
+      <div class="bunny-body">
+        <div class="bunny-arm left"></div>
+        <div class="bunny-arm right"></div>
+      </div>
+    </div>
+  </div>
+  <div class="rest-text">休息一下吧～💤</div>
+  <button class="result-btn btn-primary" id="btn-ready">准备好了！</button>
+</div>
+
+<script>
+/* ================================================================
+   小兔子数学乐园 - JavaScript
+   ================================================================ */
+
+// ===== Utilities =====
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// ===== Game State =====
+const GS = {
+  mode: 'within20',
+  totalLevels: 4,
+  questionsPerLevel: 20,
+  timePerQuestion: 15,
+
+  currentScreen: 'start',
+  currentLevel: 1,
+  currentQuestion: 0, // 1-based index of current question
+  questions: [],
+  currentInput: '',
+  isRetry: false,
+  inputLocked: false,
+  timerInterval: null,
+  questionStartTime: null,
+
+  levelStats: { correct: 0, wrong: 0, totalTime: 0, firstTryCorrect: 0 },
+  overallStats: { levels: [], gameStartTime: null },
+
+  audioEnabled: true,
+  audioCtx: null,
+  speechReady: false,
+  zhVoice: null,
+  lastPhraseIndex: -1,
+};
+
+// ===== Mode Config =====
+const ModeConfig = {
+  within20:  { max: 20, maxDigits: 2, label: '20以内加减法' },
+  within50:  { max: 50, maxDigits: 2, label: '50以内加减法' },
+  within100: { max: 100, maxDigits: 3, label: '100以内加减法' },
+};
+
+// ===== Question Generator =====
+const QuestionGenerator = {
+  getMax() { return (ModeConfig[GS.mode] || ModeConfig.within20).max; },
+
+  generateAddition() {
+    const max = this.getMax();
+    // Both operands >= 3 to avoid trivially simple questions like 2+1, 3+3
+    const answer = randomInt(6, max);
+    const a = randomInt(3, answer - 3);
+    const b = answer - a;
+    return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} = ?` };
+  },
+
+  // Specifically generate carry additions (进位加法): a%10 + b%10 >= 10
+  generateCarryAddition() {
+    const max = this.getMax();
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const answer = randomInt(11, max);
+      const a = randomInt(3, answer - 3);
+      const b = answer - a;
+      if ((a % 10) + (b % 10) >= 10 && a >= 3 && b >= 3) {
+        return { operands: [a, b], operators: ['+'], answer, display: `${a} + ${b} = ?` };
+      }
+    }
+    return this.generateAddition();
+  },
+
+  generateSubtraction() {
+    const max = this.getMax();
+    // Ensure a >= 5, b >= 2 to avoid trivially simple like 2-1, 3-1
+    const a = randomInt(5, max);
+    const b = randomInt(2, Math.max(2, a - 1));
+    const answer = a - b;
+    return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} = ?` };
+  },
+
+  // Specifically generate borrow subtractions (退位减法): a%10 < b%10
+  generateBorrowSubtraction() {
+    const max = this.getMax();
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const a = randomInt(11, max);
+      const b = randomInt(2, a);
+      if ((a % 10) < (b % 10) && (a - b) >= 0) {
+        const answer = a - b;
+        return { operands: [a, b], operators: ['-'], answer, display: `${a} - ${b} = ?` };
+      }
+    }
+    return this.generateSubtraction();
+  },
+
+  generateChained() {
+    const max = this.getMax();
+    const ops = [Math.random() < 0.5 ? '+' : '-', Math.random() < 0.5 ? '+' : '-'];
+    for (let attempt = 0; attempt < 300; attempt++) {
+      const a = randomInt(2, max - 4);
+      let mid, b;
+      if (ops[0] === '+') {
+        if (max - a < 2) continue;
+        b = randomInt(2, max - a);
+        mid = a + b;
+      } else {
+        if (a < 4) continue;
+        b = randomInt(2, a - 2);
+        mid = a - b;
+      }
+      let c, answer;
+      if (ops[1] === '+') {
+        if (max - mid < 2) continue;
+        c = randomInt(2, max - mid);
+        answer = mid + c;
+      } else {
+        if (mid < 2) continue;
+        c = randomInt(2, mid);
+        answer = mid - c;
+      }
+      if (answer >= 0 && answer <= max) {
+        const display = `${a} ${ops[0]} ${b} ${ops[1]} ${c} = ?`;
+        return { operands: [a, b, c], operators: ops, answer, display };
+      }
+    }
+    return this.generateAddition(); // fallback
+  },
+
+  // Three-operator chained: a op1 b op2 c op3 d = ?
+  generateLongChained() {
+    const max = this.getMax();
+    for (let attempt = 0; attempt < 300; attempt++) {
+      const ops = [
+        Math.random() < 0.5 ? '+' : '-',
+        Math.random() < 0.5 ? '+' : '-',
+        Math.random() < 0.5 ? '+' : '-'
+      ];
+      const a = randomInt(2, Math.min(max - 6, Math.floor(max * 0.8)));
+      let val = a, operands = [a];
+
+      let ok = true;
+      for (let i = 0; i < 3; i++) {
+        let num;
+        if (ops[i] === '+') {
+          if (max - val < 2) { ok = false; break; }
+          num = randomInt(2, Math.min(max - val, Math.floor(max * 0.4)));
+          val += num;
+        } else {
+          if (val < 2) { ok = false; break; }
+          num = randomInt(2, Math.min(val, Math.floor(max * 0.4)));
+          val -= num;
+        }
+        if (val < 0 || val > max) { ok = false; break; }
+        operands.push(num);
+      }
+      if (!ok || val < 0 || val > max) continue;
+      const display = operands.map((n, i) => i === 0 ? `${n}` : `${ops[i-1]} ${n}`).join(' ') + ' = ?';
+      return { operands, operators: ops, answer: val, display };
+    }
+    return this.generateChained(); // fallback
+  },
+
+  generateLevelQuestions(count) {
+    const questions = [];
+    const seen = new Set();
+    let attempts = 0;
+    // Distribution: 20% addition, 20% subtraction, 15% carry/borrow, 30% chained(2-op), 15% long chained(3-op)
+    while (questions.length < count && attempts < 2000) {
+      attempts++;
+      const roll = Math.random();
+      let q;
+      if (roll < 0.20)      q = this.generateAddition();
+      else if (roll < 0.40) q = this.generateSubtraction();
+      else if (roll < 0.48) q = this.generateCarryAddition();
+      else if (roll < 0.55) q = this.generateBorrowSubtraction();
+      else if (roll < 0.82) q = this.generateChained();
+      else                  q = this.generateLongChained();
+
+      const key = q.display; // use full display string as dedup key for max diversity
+      if (!seen.has(key)) {
+        seen.add(key);
+        questions.push(q);
+      }
+    }
+    // Shuffle to mix question types
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = randomInt(0, i);
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+    return questions;
+  }
+};
+
+// ===== Screen Manager =====
+const ScreenManager = {
+  show(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screenId).classList.add('active');
+    GS.currentScreen = screenId;
+  }
+};
+
+// ===== Audio Manager =====
+const AudioManager = {
+  phrases: {
+    correct: ['太棒了！', '你真厉害！', '答对了！好聪明！', '非常好！', '就是这样！', '你是最棒的！', '继续加油！', '真了不起！', '厉害厉害！'],
+    correctRetry: ['不放弃，真棒！', '坚持就是胜利！', '好样的，答对了！'],
+    wrongRetry: ['再试一次！', '别着急，再想想！', '加油，你可以的！'],
+    wrongFinal: ['没关系，下一题加油！', '没关系，下次一定行！', '记住答案，下次就会了！'],
+    timeout: ['时间到了！'],
+    levelComplete: ['太厉害了！一关通过！', '你真棒！休息一下吧！'],
+    gameComplete: ['全部通关了！你太厉害了！你是最棒的数学小达人！']
+  },
+
+  initAudioContext() {
+    if (!GS.audioCtx) {
+      GS.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (GS.audioCtx.state === 'suspended') {
+      GS.audioCtx.resume();
+    }
+  },
+
+  initSpeech() {
+    const loadVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      const zhVoices = voices.filter(v => v.lang === 'zh-CN' || v.lang.startsWith('zh'));
+      // Prefer female voice: look for names containing female/女/Ting-Ting/Meijia
+      GS.zhVoice = zhVoices.find(v => /female|女|ting.ting|meijia|lili|yaoyao/i.test(v.name)) ||
+                    zhVoices[0] || null;
+      GS.speechReady = true;
+    };
+    if (speechSynthesis.getVoices().length > 0) loadVoices();
+    speechSynthesis.addEventListener('voiceschanged', loadVoices);
+  },
+
+  speak(text) {
+    if (!GS.audioEnabled || !('speechSynthesis' in window)) return;
+    // Workaround for Chrome/Safari bug where speechSynthesis stops working:
+    // Always cancel first, then after a short delay, speak fresh.
+    speechSynthesis.cancel();
+    const doSpeak = () => {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'zh-CN';
+      utter.pitch = 1.5;
+      utter.rate = 1.05;
+      utter.volume = 1.0;
+      if (GS.zhVoice) utter.voice = GS.zhVoice;
+      speechSynthesis.speak(utter);
+    };
+    // Delay allows cancel() to fully complete before new speak()
+    setTimeout(doSpeak, 200);
+  },
+
+  speakCategory(category) {
+    const pool = this.phrases[category];
+    if (!pool || pool.length === 0) return;
+    let idx;
+    do { idx = randomInt(0, pool.length - 1); } while (pool.length > 1 && idx === GS.lastPhraseIndex);
+    GS.lastPhraseIndex = idx;
+    this.speak(pool[idx]);
+  },
+
+  playTone(freq, duration, type, vol) {
+    if (!GS.audioEnabled || !GS.audioCtx) return;
+    const ctx = GS.audioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol || 0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  },
+
+  playCorrect() {
+    if (!GS.audioCtx) return;
+    this.playTone(523, 0.15, 'sine', 0.15);
+    setTimeout(() => this.playTone(659, 0.2, 'sine', 0.15), 150);
+  },
+
+  playWrong() {
+    if (!GS.audioCtx) return;
+    this.playTone(330, 0.15, 'square', 0.08);
+    setTimeout(() => this.playTone(262, 0.2, 'square', 0.08), 150);
+  },
+
+  playClick() {
+    if (!GS.audioCtx) return;
+    this.playTone(800, 0.03, 'sine', 0.08);
+  },
+
+  playLevelComplete() {
+    if (!GS.audioCtx) return;
+    const notes = [523, 659, 784, 1047];
+    notes.forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 0.2, 'sine', 0.12), i * 120);
+    });
+  },
+
+  playGameComplete() {
+    if (!GS.audioCtx) return;
+    const notes = [523, 587, 659, 784, 880, 1047];
+    notes.forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 0.25, 'sine', 0.12), i * 130);
+    });
+  }
+};
+
+// ===== Timer Controller =====
+const TimerController = {
+  start() {
+    GS.questionStartTime = Date.now();
+    this.update();
+    GS.timerInterval = setInterval(() => this.update(), 100);
+  },
+
+  stop() {
+    if (GS.timerInterval) {
+      clearInterval(GS.timerInterval);
+      GS.timerInterval = null;
+    }
+  },
+
+  reset() {
+    this.stop();
+    this.start();
+  },
+
+  getElapsed() {
+    if (!GS.questionStartTime) return 0;
+    return (Date.now() - GS.questionStartTime) / 1000;
+  },
+
+  update() {
+    const elapsed = this.getElapsed();
+    const remaining = Math.max(0, GS.timePerQuestion - elapsed);
+    const pct = remaining / GS.timePerQuestion;
+
+    const bar = document.getElementById('timer-bar');
+    bar.style.width = (pct * 100) + '%';
+    bar.classList.remove('warn', 'danger');
+    if (remaining <= 3) bar.classList.add('danger');
+    else if (remaining <= 5) bar.classList.add('warn');
+
+    if (remaining <= 0) {
+      this.stop();
+      GameController.onTimerExpired();
+    }
+  }
+};
+
+// ===== UI Renderer =====
+const UIRenderer = {
+  renderQuestion(q) {
+    const el = document.getElementById('question-text');
+    el.textContent = q.display;
+    el.classList.remove('shake', 'fadeInUp');
+    void el.offsetWidth; // force reflow
+    el.classList.add('fadeInUp');
+  },
+
+  renderAnswer(input) {
+    const textEl = document.getElementById('answer-text');
+    const displayEl = document.getElementById('answer-display');
+    textEl.textContent = input;
+    displayEl.classList.toggle('has-input', input.length > 0);
+    displayEl.classList.remove('correct', 'wrong');
+  },
+
+  flashAnswer(isCorrect) {
+    const el = document.getElementById('answer-display');
+    el.classList.add(isCorrect ? 'correct' : 'wrong');
+  },
+
+  renderProgress(current, total) {
+    const ring = document.getElementById('progress-ring');
+    const circumference = 2 * Math.PI * 17; // r=17
+    const progress = current / total;
+    ring.style.strokeDashoffset = circumference * (1 - progress);
+    document.getElementById('progress-text').textContent = `${current}/${total}`;
+  },
+
+  showCorrectAnswer(answer) {
+    document.getElementById('correct-answer-reveal').textContent = `正确答案：${answer}`;
+  },
+
+  hideCorrectAnswer() {
+    document.getElementById('correct-answer-reveal').textContent = '';
+  },
+
+  shakeQuestion() {
+    const el = document.getElementById('question-text');
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+  },
+
+  showConfetti() {
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    const colors = ['#FF8AAE', '#7DDCBA', '#FFD93D', '#C9A5F7', '#87CEEB', '#FFB067'];
+    for (let i = 0; i < 25; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = randomInt(5, 95) + '%';
+      piece.style.backgroundColor = pickRandom(colors);
+      piece.style.width = randomInt(6, 12) + 'px';
+      piece.style.height = randomInt(6, 12) + 'px';
+      piece.style.setProperty('--x-drift', randomInt(-40, 40) + 'px');
+      piece.style.setProperty('--rotate', randomInt(360, 1080) + 'deg');
+      piece.style.animationDelay = (Math.random() * 0.5) + 's';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 2000);
+  },
+
+  showToast(text, type) {
+    const toast = document.createElement('div');
+    toast.className = `feedback-toast ${type}`;
+    toast.textContent = text;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 900);
+  },
+
+  setBunnyState(state) {
+    const bunny = document.getElementById('game-bunny');
+    bunny.className = 'bunny';
+    if (state) bunny.classList.add('bunny--' + state);
+  },
+
+  renderLevelStats(stats, level) {
+    const totalQ = GS.questionsPerLevel;
+    const accuracy = Math.round((stats.correct / totalQ) * 100);
+    const avgTime = stats.totalTime > 0 ? (stats.totalTime / totalQ).toFixed(1) : '0';
+    const levelMinutes = Math.floor(stats.totalTime / 60);
+    const levelSeconds = Math.round(stats.totalTime % 60);
+    document.getElementById('level-complete-title').textContent = `第${level}关通过！`;
+    document.getElementById('stat-accuracy').textContent = accuracy + '%';
+    document.getElementById('stat-avg-time').textContent = avgTime + '秒';
+    document.getElementById('stat-level-time').textContent =
+      levelMinutes > 0 ? `${levelMinutes}分${levelSeconds}秒` : `${levelSeconds}秒`;
+
+    // Stars based on accuracy
+    const starsRow = document.getElementById('stars-row');
+    const starCount = accuracy >= 90 ? 5 : accuracy >= 70 ? 4 : accuracy >= 50 ? 3 : accuracy >= 30 ? 2 : 1;
+    starsRow.innerHTML = '';
+    for (let i = 0; i < starCount; i++) {
+      const s = document.createElement('span');
+      s.className = 'star';
+      s.textContent = '⭐';
+      starsRow.appendChild(s);
+    }
+
+    // Overall progress bar
+    const pct = Math.round((level / GS.totalLevels) * 100);
+    document.getElementById('overall-progress-label').textContent = `总进度：${level} / ${GS.totalLevels} 关`;
+    document.getElementById('overall-progress-fill').style.width = pct + '%';
+  },
+
+  renderOverallStats(overallStats) {
+    const levels = overallStats.levels;
+    let totalCorrect = 0, totalQ = 0, totalTime = 0;
+    levels.forEach(l => {
+      totalCorrect += l.correct;
+      totalQ += GS.questionsPerLevel;
+      totalTime += l.totalTime;
+    });
+    const accuracy = Math.round((totalCorrect / totalQ) * 100);
+    const minutes = Math.floor(totalTime / 60);
+    const seconds = Math.round(totalTime % 60);
+    document.getElementById('stat-total-correct').textContent = `${totalCorrect}/${totalQ}题`;
+    document.getElementById('stat-total-accuracy').textContent = accuracy + '%';
+    document.getElementById('stat-total-time').textContent =
+      minutes > 0 ? `${minutes}分${seconds}秒` : `${seconds}秒`;
+
+    // Dynamic praise based on accuracy
+    const titleEl = document.getElementById('game-complete-title');
+    if (accuracy >= 95) titleEl.textContent = '全部通关！你是数学小天才！';
+    else if (accuracy >= 80) titleEl.textContent = '全部通关！太厉害了！';
+    else if (accuracy >= 60) titleEl.textContent = '全部通关！做得真棒！';
+    else titleEl.textContent = '全部通关！继续加油哦！';
+  },
+
+  setKeypadEnabled(enabled) {
+    document.querySelectorAll('#keypad .key-btn').forEach(btn => {
+      btn.disabled = !enabled;
+    });
+  }
+};
+
+// ===== Input Handler =====
+const InputHandler = {
+  init() {
+    document.getElementById('keypad').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const btn = e.target.closest('.key-btn');
+      if (!btn || btn.disabled) return;
+      const key = btn.dataset.key;
+      this.handleKey(key);
+    });
+
+    // Physical keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (GS.currentScreen !== 'game') return;
+      if (e.key >= '0' && e.key <= '9') this.handleKey(e.key);
+      else if (e.key === 'Backspace') this.handleKey('delete');
+      else if (e.key === 'Enter') this.handleKey('confirm');
+    });
+  },
+
+  handleKey(key) {
+    if (GS.inputLocked) return;
+
+    if (key === 'delete') {
+      AudioManager.playClick();
+      GS.currentInput = GS.currentInput.slice(0, -1);
+      UIRenderer.renderAnswer(GS.currentInput);
+    } else if (key === 'confirm') {
+      if (GS.currentInput === '') return;
+      AudioManager.playClick();
+      GameController.submitAnswer(parseInt(GS.currentInput, 10));
+    } else {
+      // Digit 0-9
+      if (GS.currentInput.length >= (ModeConfig[GS.mode] || ModeConfig.within20).maxDigits) return;
+      AudioManager.playClick();
+      GS.currentInput += key;
+      UIRenderer.renderAnswer(GS.currentInput);
+    }
+  }
+};
+
+// ===== Game Controller =====
+const GameController = {
+  startGame(mode) {
+    AudioManager.initAudioContext();
+    AudioManager.initSpeech();
+
+    GS.mode = mode;
+    GS.currentLevel = 1;
+    GS.overallStats = { levels: [], gameStartTime: Date.now() };
+
+    this.startLevel();
+  },
+
+  startLevel() {
+    GS.currentQuestion = 0;
+    GS.questions = QuestionGenerator.generateLevelQuestions(GS.questionsPerLevel);
+    GS.levelStats = { correct: 0, wrong: 0, totalTime: 0, firstTryCorrect: 0 };
+    document.getElementById('level-label').textContent = `第${GS.currentLevel}关`;
+    ScreenManager.show('game');
+    this.nextQuestion();
+  },
+
+  nextQuestion() {
+    GS.currentQuestion++;
+    if (GS.currentQuestion > GS.questionsPerLevel) {
+      this.onLevelComplete();
+      return;
+    }
+
+    GS.currentInput = '';
+    GS.isRetry = false;
+    GS.inputLocked = false;
+
+    const q = GS.questions[GS.currentQuestion - 1];
+    UIRenderer.renderQuestion(q);
+    UIRenderer.renderAnswer('');
+    UIRenderer.hideCorrectAnswer();
+    UIRenderer.renderProgress(GS.currentQuestion - 1, GS.questionsPerLevel);
+    UIRenderer.setBunnyState(null); // idle
+    UIRenderer.setKeypadEnabled(true);
+
+    TimerController.start();
+  },
+
+  submitAnswer(answer) {
+    const q = GS.questions[GS.currentQuestion - 1];
+    const elapsed = TimerController.getElapsed();
+    TimerController.stop();
+
+    if (answer === q.answer) {
+      // Correct!
+      GS.inputLocked = true;
+      GS.levelStats.correct++;
+      GS.levelStats.totalTime += elapsed;
+      if (!GS.isRetry) GS.levelStats.firstTryCorrect++;
+
+      UIRenderer.flashAnswer(true);
+      UIRenderer.setBunnyState('happy');
+      UIRenderer.showConfetti();
+      UIRenderer.renderProgress(GS.currentQuestion, GS.questionsPerLevel);
+      AudioManager.playCorrect();
+
+      if (GS.isRetry) {
+        UIRenderer.showToast('答对了！', 'correct');
+        AudioManager.speakCategory('correctRetry');
+      } else {
+        UIRenderer.showToast('答对了！', 'correct');
+        AudioManager.speakCategory('correct');
+      }
+
+      UIRenderer.setKeypadEnabled(false);
+      setTimeout(() => this.nextQuestion(), 1500);
+
+    } else if (!GS.isRetry) {
+      // First wrong
+      GS.isRetry = true;
+      GS.currentInput = '';
+
+      UIRenderer.flashAnswer(false);
+      UIRenderer.shakeQuestion();
+      UIRenderer.setBunnyState('sad');
+      AudioManager.playWrong();
+      UIRenderer.showToast('再试一次！', 'retry');
+      AudioManager.speakCategory('wrongRetry');
+
+      setTimeout(() => {
+        UIRenderer.renderAnswer('');
+        UIRenderer.setBunnyState(null);
+        TimerController.reset();
+      }, 600);
+
+    } else {
+      // Second wrong
+      GS.inputLocked = true;
+      GS.levelStats.wrong++;
+      GS.levelStats.totalTime += elapsed;
+
+      UIRenderer.flashAnswer(false);
+      UIRenderer.shakeQuestion();
+      UIRenderer.setBunnyState('sad');
+      UIRenderer.showCorrectAnswer(q.answer);
+      UIRenderer.renderProgress(GS.currentQuestion, GS.questionsPerLevel);
+      AudioManager.playWrong();
+      AudioManager.speakCategory('wrongFinal');
+      UIRenderer.showToast('没关系！', 'wrong');
+
+      UIRenderer.setKeypadEnabled(false);
+      setTimeout(() => this.nextQuestion(), 2500);
+    }
+  },
+
+  onTimerExpired() {
+    if (GS.currentScreen !== 'game' || GS.inputLocked) return;
+    const q = GS.questions[GS.currentQuestion - 1];
+    if (!q) return;
+
+    if (!GS.isRetry) {
+      // First timeout -> retry
+      GS.isRetry = true;
+      GS.currentInput = '';
+
+      UIRenderer.setBunnyState('sad');
+      AudioManager.playWrong();
+      UIRenderer.showToast('时间到！', 'retry');
+      AudioManager.speakCategory('timeout');
+
+      setTimeout(() => {
+        UIRenderer.renderAnswer('');
+        UIRenderer.setBunnyState(null);
+        TimerController.reset();
+      }, 800);
+
+    } else {
+      // Second timeout
+      GS.inputLocked = true;
+      GS.levelStats.wrong++;
+      GS.levelStats.totalTime += GS.timePerQuestion;
+
+      UIRenderer.setBunnyState('sad');
+      UIRenderer.showCorrectAnswer(q.answer);
+      UIRenderer.renderProgress(GS.currentQuestion, GS.questionsPerLevel);
+      AudioManager.playWrong();
+      AudioManager.speakCategory('wrongFinal');
+      UIRenderer.showToast('时间到！', 'wrong');
+
+      UIRenderer.setKeypadEnabled(false);
+      setTimeout(() => this.nextQuestion(), 2500);
+    }
+  },
+
+  onLevelComplete() {
+    TimerController.stop();
+    GS.inputLocked = true;
+    speechSynthesis.cancel();
+
+    GS.overallStats.levels.push({ ...GS.levelStats });
+    UIRenderer.renderLevelStats(GS.levelStats, GS.currentLevel);
+    AudioManager.playLevelComplete();
+    AudioManager.speakCategory('levelComplete');
+
+    if (GS.currentLevel >= GS.totalLevels) {
+      // Game complete
+      UIRenderer.renderOverallStats(GS.overallStats);
+      AudioManager.playGameComplete();
+      setTimeout(() => {
+        AudioManager.speakCategory('gameComplete');
+        ScreenManager.show('game-complete');
+      }, 600);
+    } else {
+      ScreenManager.show('level-complete');
+    }
+  },
+
+  continueNextLevel() {
+    GS.currentLevel++;
+    this.startLevel();
+  },
+
+  restThenContinue() {
+    ScreenManager.show('rest');
+  },
+
+  restartGame() {
+    ScreenManager.show('start');
+  }
+};
+
+// ===== Event Bindings =====
+document.addEventListener('DOMContentLoaded', () => {
+  InputHandler.init();
+
+  // Start screen — mode buttons
+  document.getElementById('btn-mode-within20').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.startGame('within20');
+  });
+  document.getElementById('btn-mode-within50').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.startGame('within50');
+  });
+  document.getElementById('btn-mode-within100').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.startGame('within100');
+  });
+
+  // Level complete buttons
+  document.getElementById('btn-next-level').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.continueNextLevel();
+  });
+  document.getElementById('btn-rest').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.restThenContinue();
+  });
+
+  // Rest screen
+  document.getElementById('btn-ready').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GS.currentLevel++;
+    GameController.startLevel();
+  });
+
+  // Game complete
+  document.getElementById('btn-replay').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GameController.restartGame();
+  });
+
+  // Sound toggle
+  document.getElementById('sound-toggle').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    GS.audioEnabled = !GS.audioEnabled;
+    const btn = document.getElementById('sound-toggle');
+    btn.textContent = GS.audioEnabled ? '🔊' : '🔇';
+    btn.classList.toggle('muted', !GS.audioEnabled);
+    if (!GS.audioEnabled) speechSynthesis.cancel();
+  });
+});
+
+// ===== Test Suite =====
+function runTests() {
+  let passed = 0, failed = 0;
+  const results = [];
+
+  function assert(condition, msg) {
+    if (condition) {
+      passed++;
+    } else {
+      failed++;
+      results.push('FAIL: ' + msg);
+      console.error('FAIL:', msg);
+    }
+  }
+
+  // Helper: test a mode
+  function testMode(mode) {
+    const prevMode = GS.mode;
+    GS.mode = mode;
+    const max = ModeConfig[mode].max;
+    const prefix = `[${mode}]`;
+
+    // TC-01: Addition — operands >= 3
+    for (let i = 0; i < 500; i++) {
+      const q = QuestionGenerator.generateAddition();
+      assert(q.answer >= 0 && q.answer <= max, `${prefix} TC-01: Addition answer ${q.answer} out of [0,${max}]`);
+      assert(q.operands[0] >= 3 && q.operands[1] >= 3, `${prefix} TC-01: Addition operand too small: ${q.operands}`);
+      assert(q.operands[0] + q.operands[1] === q.answer, `${prefix} TC-01: ${q.operands[0]}+${q.operands[1]} != ${q.answer}`);
+    }
+
+    // TC-02: Subtraction — a >= 5, b >= 2
+    for (let i = 0; i < 500; i++) {
+      const q = QuestionGenerator.generateSubtraction();
+      assert(q.answer >= 0, `${prefix} TC-02: Subtraction answer ${q.answer} negative`);
+      assert(q.answer <= max, `${prefix} TC-02: Subtraction answer ${q.answer} > ${max}`);
+      assert(q.operands[0] >= 5, `${prefix} TC-02: Subtraction a=${q.operands[0]} < 5`);
+      assert(q.operands[1] >= 2, `${prefix} TC-02: Subtraction b=${q.operands[1]} < 2`);
+      assert(q.operands[0] - q.operands[1] === q.answer, `${prefix} TC-02: ${q.operands[0]}-${q.operands[1]} != ${q.answer}`);
+    }
+
+    // TC-02b: Carry Addition — operands >= 3
+    for (let i = 0; i < 200; i++) {
+      const q = QuestionGenerator.generateCarryAddition();
+      assert(q.answer >= 0 && q.answer <= max, `${prefix} TC-02b: Carry addition answer ${q.answer} out of range`);
+      assert(q.operands[0] >= 3 && q.operands[1] >= 3, `${prefix} TC-02b: Carry operand too small: ${q.operands}`);
+      assert(q.operands[0] + q.operands[1] === q.answer, `${prefix} TC-02b: computation wrong`);
+    }
+
+    // TC-02c: Borrow Subtraction — b >= 2
+    for (let i = 0; i < 200; i++) {
+      const q = QuestionGenerator.generateBorrowSubtraction();
+      assert(q.answer >= 0 && q.answer <= max, `${prefix} TC-02c: Borrow subtraction answer ${q.answer} out of range`);
+      assert(q.operands[1] >= 2, `${prefix} TC-02c: Borrow b=${q.operands[1]} < 2`);
+      assert(q.operands[0] - q.operands[1] === q.answer, `${prefix} TC-02c: computation wrong`);
+    }
+
+    // TC-03: Chained (2-op) — all operands >= 2
+    for (let i = 0; i < 500; i++) {
+      const q = QuestionGenerator.generateChained();
+      assert(q.operands.length === 3 && q.operators.length === 2, `${prefix} TC-03: structure wrong`);
+      assert(q.operands.every(op => op >= 2), `${prefix} TC-03: Chained operand too small: ${q.operands}`);
+      let mid = q.operators[0] === '+' ? q.operands[0] + q.operands[1] : q.operands[0] - q.operands[1];
+      assert(mid >= 0 && mid <= max, `${prefix} TC-03: Intermediate ${mid} out of [0,${max}]`);
+      let final_answer = q.operators[1] === '+' ? mid + q.operands[2] : mid - q.operands[2];
+      assert(final_answer >= 0 && final_answer <= max, `${prefix} TC-03: Final ${final_answer} out of [0,${max}]`);
+      assert(final_answer === q.answer, `${prefix} TC-03: Calculated ${final_answer} != ${q.answer}`);
+    }
+
+    // TC-03b: Long Chained (3-op) — all operands >= 2
+    for (let i = 0; i < 300; i++) {
+      const q = QuestionGenerator.generateLongChained();
+      assert(q.operands.length === 4 && q.operators.length === 3, `${prefix} TC-03b: structure wrong`);
+      assert(q.operands.every(op => op >= 2), `${prefix} TC-03b: Long chained operand too small: ${q.operands}`);
+      let val = q.operands[0];
+      for (let j = 0; j < q.operators.length; j++) {
+        val = q.operators[j] === '+' ? val + q.operands[j+1] : val - q.operands[j+1];
+        assert(val >= 0 && val <= max, `${prefix} TC-03b: Intermediate step ${j} val=${val} out of range`);
+      }
+      assert(val === q.answer, `${prefix} TC-03b: Calculated ${val} != ${q.answer}`);
+    }
+
+    // TC-04: No duplicates in a level
+    const levelQ = QuestionGenerator.generateLevelQuestions(20);
+    const keys = new Set(levelQ.map(q => q.display));
+    assert(keys.size === 20, `${prefix} TC-04: Duplicates found, ${keys.size} unique of 20`);
+    assert(levelQ.length === 20, `${prefix} TC-04: Expected 20 questions, got ${levelQ.length}`);
+
+    // TC-05: Type distribution (wider ranges for new mix)
+    let addCount = 0, subCount = 0, chainCount = 0;
+    for (let round = 0; round < 5; round++) {
+      const qs = QuestionGenerator.generateLevelQuestions(20);
+      qs.forEach(q => {
+        if (q.operators.length >= 2) chainCount++;
+        else if (q.operators[0] === '+') addCount++;
+        else subCount++;
+      });
+    }
+    const total = addCount + subCount + chainCount;
+    // Chained should be >= 30%
+    assert(chainCount / total >= 0.25, `${prefix} TC-05: Chained ratio ${(chainCount/total*100).toFixed(1)}% < 25%`);
+
+    // TC-06: Answer distribution
+    const qs6 = QuestionGenerator.generateLevelQuestions(20);
+    const answerCounts = {};
+    qs6.forEach(q => { answerCounts[q.answer] = (answerCounts[q.answer] || 0) + 1; });
+    const maxSameAnswer = Math.max(...Object.values(answerCounts));
+    assert(maxSameAnswer <= 5, `${prefix} TC-06: Max same answer count ${maxSameAnswer} > 5`);
+
+    // TC-07: No trivially simple questions — minimum operand checks
+    for (let i = 0; i < 500; i++) {
+      const q = QuestionGenerator.generateLevelQuestions(1)[0];
+      const allMinTwo = q.operands.every(op => op >= 2);
+      assert(allMinTwo, `${prefix} TC-07: Operand too small in ${q.display}`);
+    }
+
+    GS.mode = prevMode;
+  }
+
+  // Run tests for all 3 modes
+  ['within20', 'within50', 'within100'].forEach(mode => {
+    console.log(`Testing mode: ${mode}...`);
+    testMode(mode);
+  });
+
+  console.log(`\n==============================`);
+  console.log(`Tests complete: ${passed} passed, ${failed} failed`);
+  console.log(`==============================\n`);
+  if (results.length > 0) {
+    console.log('Failures:');
+    results.forEach(r => console.log('  ' + r));
+  }
+  return failed === 0;
+}
+
+// Auto-run tests on load (results in console)
+if (typeof console !== 'undefined') {
+  setTimeout(() => {
+    console.log('Running automated tests...');
+    runTests();
+  }, 500);
+}
+</script>
+</body>
+</html>
