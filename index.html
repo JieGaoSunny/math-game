@@ -1370,7 +1370,7 @@ const UIRenderer = {
 // ===== Input Handler =====
 const InputHandler = {
   init() {
-    document.getElementById('keypad').addEventListener('pointerdown', (e) => {
+    document.getElementById('keypad').addEventListener('click', (e) => {
       e.preventDefault();
       const btn = e.target.closest('.key-btn');
       if (!btn || btn.disabled) return;
@@ -1600,44 +1600,44 @@ document.addEventListener('DOMContentLoaded', () => {
   InputHandler.init();
 
   // Start screen — mode buttons
-  document.getElementById('btn-mode-within20').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-mode-within20').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.startGame('within20');
   });
-  document.getElementById('btn-mode-within50').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-mode-within50').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.startGame('within50');
   });
-  document.getElementById('btn-mode-within100').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-mode-within100').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.startGame('within100');
   });
 
   // Level complete buttons
-  document.getElementById('btn-next-level').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-next-level').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.continueNextLevel();
   });
-  document.getElementById('btn-rest').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-rest').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.restThenContinue();
   });
 
   // Rest screen
-  document.getElementById('btn-ready').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-ready').addEventListener('click', (e) => {
     e.preventDefault();
     GS.currentLevel++;
     GameController.startLevel();
   });
 
   // Game complete
-  document.getElementById('btn-replay').addEventListener('pointerdown', (e) => {
+  document.getElementById('btn-replay').addEventListener('click', (e) => {
     e.preventDefault();
     GameController.restartGame();
   });
 
   // Sound toggle
-  document.getElementById('sound-toggle').addEventListener('pointerdown', (e) => {
+  document.getElementById('sound-toggle').addEventListener('click', (e) => {
     e.preventDefault();
     GS.audioEnabled = !GS.audioEnabled;
     const btn = document.getElementById('sound-toggle');
